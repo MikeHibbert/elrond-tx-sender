@@ -97,11 +97,6 @@ func GenerateCryptoSuite(
 		return nil, nil, nil, err
 	}
 
-	pkByteArray, err := privKey.ToByteArray()
-	encodedPriv := hex.EncodeToString(pkByteArray)
-
-	fmt.Println(fmt.Sprintf("Private key is: %s", encodedPriv))
-
 	pubKey = privKey.GeneratePublic()
 
 	return keyGen, privKey, pubKey, err
