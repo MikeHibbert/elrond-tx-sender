@@ -45,11 +45,11 @@ VERSION:
 		Value: "",
 	}
 
-	// txReceiver defines the address to send tokens to
+	// txReceiver defines the address to send tokens to - not used right now
 	txReceiver = cli.StringFlag{
 		Name:  "tx-receiver",
-		Usage: "Which address to send tokens to",
-		Value: "36a08d525f073b6aead77132cc9bcf65f72847376437e4ba742e7c716bcd6bd1",
+		Usage: "Which address to send tokens to (disabled for now)",
+		Value: "",
 	}
 
 	// txCount defines the number of transactions to send
