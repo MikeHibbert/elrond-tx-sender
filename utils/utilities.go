@@ -37,7 +37,7 @@ func HostForShard(shard int) string {
 	return hostForShard
 }
 
-// FetchProxies - fetch a list of proxies from a specifid file
+// FetchProxies - fetch a list of proxies from a specified file
 func FetchProxies(filePath string) ([]string, error) {
 	data, err := ReadFileToString(filePath)
 
