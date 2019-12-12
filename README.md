@@ -40,6 +40,8 @@ git clone https://github.com/SebastianJ/elrond-tx-sender.git
 go build
 ```
 
+Create the folder `keys` and add all of the sending pem keys you want to use to send transactions (doesn't matter what they are named - the tool will look for *.pem in that folder).
+
 #### Local nodes (using the nodes defined in utils/utilities.go, method HostForShard)
 
 `./elrond-tx-sender --tx-count 1000`
@@ -55,7 +57,7 @@ For the remote wallet there's also proxy support implemented to not get IP block
 
 Create the file tx_data.txt in the same folder as the elrond-tx-sender binary (or supply --tx-data-file pointing to your custom tx data file).
 
-Example files are included in examples: 4chan_marine_tx_data.txt and mrbubz_tx_data.txt (for my testing I used both)
+Example files are included in examples: 4chan_marine_tx_data.txt (499,500 bytes) and mrbubz_tx_data.txt (126,896 bytes) - for my testing I used both, but primarily the larger 4chan_marine_tx_data.txt payload.
 
 ## Notes
 
