@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"sync"
+	"syscall"
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
@@ -178,8 +180,8 @@ func startSender(ctx *cli.Context, log logger.Logger, version string) error {
 
 	log.Info("Looking for pem certs!")
 
-	// sigs := make(chan os.Signal, 1)
-	// signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	for _, pemCert := range pemCerts {
 		log.Info(fmt.Sprintf("Found pem certificate: %s", pemCert))
@@ -187,7 +189,7 @@ func startSender(ctx *cli.Context, log logger.Logger, version string) error {
 		//bulkSendTxs(pemCert, txCount, txData, proxies, log)
 	}
 
-	// <-sigs
+	<-sigs
 
 	log.Info("terminating at user's signal...")
 
