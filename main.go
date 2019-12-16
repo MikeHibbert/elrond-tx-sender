@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"math/big"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"runtime"
-	"syscall"
+	"sync"
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
@@ -113,8 +112,8 @@ func main() {
 	}
 	app.Authors = []cli.Author{
 		{
-			Name:  "Sebastian Johnsson",
-			Email: "sebastian.johnsson@gmail.com",
+			Name:  "Mike Hibbert",
+			Email: "mike@hibbertitsolutions.co.uk",
 		},
 	}
 
@@ -179,15 +178,17 @@ func startSender(ctx *cli.Context, log logger.Logger, version string) error {
 
 	log.Info("Looking for pem certs!")
 
+	// sigs := make(chan os.Signal, 1)
+	// signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
 	for _, pemCert := range pemCerts {
 		log.Info(fmt.Sprintf("Found pem certificate: %s", pemCert))
 		go bulkSendTxs(pemCert, apiHost, txCount, txData, proxies, log)
 		//bulkSendTxs(pemCert, txCount, txData, proxies, log)
 	}
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	<-sigs
+	// <-sigs
+
 	log.Info("terminating at user's signal...")
 
 	return nil
@@ -224,26 +225,35 @@ func bulkSendTxs(pemCert string, apiHost string, txCount int, txData string, pro
 	fmt.Println("Balance is now:", accountData.Balance)
 
 	nonce := accountData.Nonce
-	amount := big.NewInt(10000) // 10000 = 1 token
+	amount := big.NewInt(1) // 10000 = 1 token
 	gasPrice := uint64(1000000000000000)
 	gasLimit := 100000 + uint64(len(txData)) // 10 ERD fee when sending 0 amount and no data
 
-	for i := 0; i < txCount; i++ {
-		proxy := senderUtils.RandomProxy(proxies)
-		go sendTx(apiHost, privKey, sender, hexSender, senderShard, receiver, hexReceiver, receiverShard, amount, gasPrice, gasLimit, txData, nonce, proxy, log)
-		//err := sendTx(apiHost, privKey, sender, hexSender, senderShard, receiver, hexReceiver, receiverShard, amount, gasPrice, gasLimit, txData, nonce, proxy, log)
+	respond := make(chan error, txCount)
+	var wg sync.WaitGroup
+	wg.Add(txCount)
 
-		if err != nil {
-			return err
+	for true {
+		for i := 0; i < txCount; i++ {
+			proxy := senderUtils.RandomProxy(proxies)
+			go sendTx(respond, &wg, apiHost, privKey, sender, hexSender, senderShard, receiver, hexReceiver, receiverShard, amount, gasPrice, gasLimit, txData, nonce, proxy, log)
+
+			if err != nil {
+				return err
+			}
+
+			nonce++
 		}
-
-		nonce++
+		wg.Wait()
+		close(respond)
 	}
 
 	return nil
 }
 
-func sendTx(apiHost string, privKey crypto.PrivateKey, sender string, hexSender []byte, senderShard int, receiver string, hexReceiver []byte, receiverShard int, amount *big.Int, gasPrice uint64, gasLimit uint64, txData string, nonce uint64, proxy string, log logger.Logger) error {
+func sendTx(respond chan<- error, wg *sync.WaitGroup, apiHost string, privKey crypto.PrivateKey, sender string, hexSender []byte, senderShard int, receiver string, hexReceiver []byte, receiverShard int, amount *big.Int, gasPrice uint64, gasLimit uint64, txData string, nonce uint64, proxy string, log logger.Logger) error {
+	defer wg.Done()
+
 	log.Info("")
 	log.Info(fmt.Sprintf("Sender: %s (shard %d)", sender, senderShard))
 	log.Info(fmt.Sprintf("Receiver: %s (shard %d)", receiver, receiverShard))
