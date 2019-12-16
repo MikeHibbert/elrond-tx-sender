@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
-	"sync"
 	"syscall"
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
@@ -231,14 +230,14 @@ func bulkSendTxs(pemCert string, apiHost string, txCount int, txData string, pro
 	gasPrice := uint64(1000000000000000)
 	gasLimit := 100000 + uint64(len(txData)) // 10 ERD fee when sending 0 amount and no data
 
-	respond := make(chan error, txCount)
-	var wg sync.WaitGroup
-	wg.Add(txCount)
+	// respond := make(chan error, txCount)
+	// var wg sync.WaitGroup
+	// wg.Add(txCount)
 
 	for {
 		for i := 0; i < txCount; i++ {
 			proxy := senderUtils.RandomProxy(proxies)
-			go sendTx(respond, &wg, apiHost, privKey, sender, hexSender, senderShard, receiver, hexReceiver, receiverShard, amount, gasPrice, gasLimit, txData, nonce, proxy, log)
+			go sendTx(apiHost, privKey, sender, hexSender, senderShard, receiver, hexReceiver, receiverShard, amount, gasPrice, gasLimit, txData, nonce, proxy, log)
 
 			if err != nil {
 				return err
@@ -246,15 +245,14 @@ func bulkSendTxs(pemCert string, apiHost string, txCount int, txData string, pro
 
 			nonce++
 		}
-		wg.Wait()
-		close(respond)
+		// wg.Wait()
+		// close(respond)
 	}
 
 	return nil
 }
 
-func sendTx(respond chan<- error, wg *sync.WaitGroup, apiHost string, privKey crypto.PrivateKey, sender string, hexSender []byte, senderShard int, receiver string, hexReceiver []byte, receiverShard int, amount *big.Int, gasPrice uint64, gasLimit uint64, txData string, nonce uint64, proxy string, log logger.Logger) error {
-	defer wg.Done()
+func sendTx(apiHost string, privKey crypto.PrivateKey, sender string, hexSender []byte, senderShard int, receiver string, hexReceiver []byte, receiverShard int, amount *big.Int, gasPrice uint64, gasLimit uint64, txData string, nonce uint64, proxy string, log logger.Logger) error {
 
 	log.Info("")
 	log.Info(fmt.Sprintf("Sender: %s (shard %d)", sender, senderShard))
