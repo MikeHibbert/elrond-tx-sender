@@ -234,20 +234,20 @@ func bulkSendTxs(pemCert string, apiHost string, txCount int, txData string, pro
 	// var wg sync.WaitGroup
 	// wg.Add(txCount)
 
-	for {
-		for i := 0; i < txCount; i++ {
-			proxy := senderUtils.RandomProxy(proxies)
-			go sendTx(apiHost, privKey, sender, hexSender, senderShard, receiver, hexReceiver, receiverShard, amount, gasPrice, gasLimit, txData, nonce, proxy, log)
+	// for {
+	for i := 0; i < txCount; i++ {
+		proxy := senderUtils.RandomProxy(proxies)
+		go sendTx(apiHost, privKey, sender, hexSender, senderShard, receiver, hexReceiver, receiverShard, amount, gasPrice, gasLimit, txData, nonce, proxy, log)
 
-			if err != nil {
-				return err
-			}
-
-			nonce++
+		if err != nil {
+			return err
 		}
-		// wg.Wait()
-		// close(respond)
+
+		nonce++
 	}
+	// wg.Wait()
+	// close(respond)
+	// }
 
 	return nil
 }
