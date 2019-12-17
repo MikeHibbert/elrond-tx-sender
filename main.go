@@ -227,27 +227,27 @@ func bulkSendTxs(pemCert string, apiHost string, txCount int, txData string, pro
 
 	nonce := accountData.Nonce
 	amount := big.NewInt(1) // 10000 = 1 token
-	gasPrice := uint64(1000000000000000)
+	gasPrice := uint64(1000000000000000000)
 	gasLimit := 100000 + uint64(len(txData)) // 10 ERD fee when sending 0 amount and no data
 
 	// respond := make(chan error, txCount)
 	// var wg sync.WaitGroup
 	// wg.Add(txCount)
 
-	// for {
-	for i := 0; i < txCount; i++ {
-		proxy := senderUtils.RandomProxy(proxies)
-		go sendTx(apiHost, privKey, sender, hexSender, senderShard, receiver, hexReceiver, receiverShard, amount, gasPrice, gasLimit, txData, nonce, proxy, log)
+	for {
+		for i := 0; i < txCount; i++ {
+			proxy := senderUtils.RandomProxy(proxies)
+			go sendTx(apiHost, privKey, sender, hexSender, senderShard, receiver, hexReceiver, receiverShard, amount, gasPrice, gasLimit, txData, nonce, proxy, log)
 
-		if err != nil {
-			return err
+			if err != nil {
+				return err
+			}
+
+			nonce++
 		}
-
-		nonce++
+		// wg.Wait()
+		// close(respond)
 	}
-	// wg.Wait()
-	// close(respond)
-	// }
 
 	return nil
 }
